@@ -1,0 +1,124 @@
+
+This is the most simple project to boot a simple ARM-based board, the VersatilePB board.
+
+Different documents are available online, mostly from ARM website. You will need
+several technical reference manuals, like it is the case with most embedded systems.
+Unfortunately, these manuals are written from both hardware and software perspective,
+making them hard to read for software developers. Yet, they are full of information.
+				
+--------------------------------------------------------------------
+SETUP
+--------------------------------------------------------------------
+
+You must have a toolchain for ARM... because you will be cross-compiling and cross-debugging
+from your laptop/desktop (assuming you have an Intel/AMD hardware, either 32 or 64 bits).
+
+The toolchain gcc-arm-none-eabi has been used successfully. You can install it via your 
+normal software installer from your distribution
+
+	$ sudo apt-get install gcc-arm-none-eabi
+
+Nota Bene: 
+           You must use all the tools from your toolchain, consistently.
+		   At the very least, this means the following:
+		    
+             - you must compile using the gcc compiler for the ARM processor
+             - you must link using the gcc linker for the ARM processor
+             - you must debug using the gdb debugger for the ARM processor
+
+           You most likely mistake will be to start a gdb for your own platform,
+           not the ARM platform emulated by Qemu.
+                      
+
+--------------------------------------------------------------------
+NAVIGATING THE CODE:
+--------------------------------------------------------------------
+
+The execution starts in startup.o, which contains the minimum setup in assembly language.
+The assembly entry point is the label _entry. 
+
+Then the execution goes up in C, with the c_entry(void) function as the C entry point.
+The C code is a simple program that polls UART0 and echoes every character received
+on UART0.
+
+This code does not setup interrupts... so this is active polling... so expect to hear
+your fan ramp up pretty rapidly. ;-) 
+
+--------------------------------------------------------------------
+Makefile
+--------------------------------------------------------------------
+
+The makefile is a real vanilla makefile, nothing fancy or difficult.
+
+It is structured for cross-compilation, so you must give the path to your toolchain for ARM processor.
+
+The makefile can be used for everything:
+	- compiling and linking.
+	- launching the emulation on Qemu.
+	- debugging on Qemu.
+	
+--------------------------------------------------------------------
+Launching an emulation on Qemu
+--------------------------------------------------------------------
+
+The simplest is to use the given makefile:
+
+	$ make run
+	
+This will launch Qemu, emulating a VersatilePB board, loading your code (test.bin).
+Look at the makefile to see how test.bin is created using the objcopy tool from 
+the test.elf executable. 
+
+--------------------------------------------------------------------
+Debugging an emulation on Qemu
+
+	COMMAND LINE DEBUGGING
+--------------------------------------------------------------------
+
+You can easily debug also, using Qemu. You will need two terminals though,
+one to start Qemu first and the other to start the GNU gdb debugger.
+In the first terminal:
+
+	$ make debug
+	
+And in the second terminal, you will need to start GDB.
+
+	$ gcc-arm-none-eabi-gdb
+	(gdb) 
+
+Now, go read the README-GDB !
+	
+--------------------------------------------------------------------
+Debugging an emulation on Qemu
+
+	ECLIPSE DEBUGGING
+--------------------------------------------------------------------
+
+You can also debug from Eclipse. You will need to start Qemu manually,
+and you will need to launch the debugger from Eclipse, configuring it
+to do remote debugging through TCP on localhost:1234
+
+--------------------------------------------------------------------
+To Go Deeper
+--------------------------------------------------------------------
+
+You will need the technical reference manual of the processor of your board:
+
+	- DDI0222	ARM9EJ-S
+				Revision: r1p2
+				Technical Reference Manual
+
+You will need the technical reference manual of your board, describing many features
+of the board design.
+				
+	- DUI0225D	Versatile Application Baseboard for ARM926EJ-S (HBI-0118)
+				
+	- DUI0224I 	RealView Platform Baseboard for ARM926EJ-S (HBI-0117)
+
+You will also need the technical reference manual of the different devices, available
+on your board. In this simple example, we only use the UART:
+	
+	- DDI0183  	PrimeCell UART (PL011) 
+			 	Revision: r1p4
+				Technical Reference Manual
+

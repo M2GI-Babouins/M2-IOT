@@ -1,0 +1,13 @@
+!SESSION 2021-01-12 08:35:06.541 -----------------------------------------------
+eclipse.buildId=4.11.0.I20190307-0500
+java.version=1.8.0_31
+java.vendor=Oracle Corporation
+BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=en_US
+Framework arguments:  -product org.eclipse.epp.package.java.product
+Command-line arguments:  -os linux -ws gtk -arch x86_64 -product org.eclipse.epp.package.java.product -data workspace/
+
+!ENTRY org.eclipse.egit.core 1 0 2021-01-12 08:35:12.129
+!MESSAGE Using Apache MINA sshd as ssh client.
+
+!ENTRY org.eclipse.cdt.core 1 0 2021-01-12 08:35:48.216
+!MESSAGE Indexed 'arm.boot' (1 sources, 0 headers) in 0.38 sec: 17 declarations; 42 references; 0 unresolved inclusions; 0 syntax errors; 0 unresolved names (0%)

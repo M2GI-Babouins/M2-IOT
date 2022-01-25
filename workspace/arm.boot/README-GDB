@@ -1,0 +1,431 @@
+
+Other GDB tutorials: Beej's Quick Guide to GDB
+
+  we provided it locally for you, in Step0/GDB-Quick-Guide, as an HTML page.
+  
+  it is also available online at http://beej.us/guide/bggdb/#qref
+
+=======================================================================
+GNU GDB usage
+=======================================================================
+
+GDB is a powerful debugger for the C/C++ languages.
+There are plenty of tutorials on the Web, so this will
+be about the commands I personally use all the times.
+Many other ways of using gdb exists.
+
+Tip: you can use GDB as a command line tool, or you can use GDB from a front-end tool. 
+
+     Eclipse is one choice, with the C/C++ environment, that is, the CDT plugin.
+     It works nicely but Eclipse does not support the GDB console, so there is so much
+     you cannot do that it is really ANNOYING. But as a quick start, to single step
+     and debug your code, it works nicely.
+
+     Emacs can be used, although if you are not already an Emacs user, 
+     it may be a bit confusing at first. You have the ability to exploit the power of
+     Emacs with a full support of GDB features. Neat.
+
+     You may use DDD, a nice X11 front-end, but usually DDD launches with ugly fonts,
+     so it needs a little bit of configuring, but after that, it works great.
+     See the DDD section at the end of this README. 
+     DDD is also a nice combo, supporting the GDB console, for a complete access
+     to the full debugging power of GDB. 
+
+Tip: remember that for easy debugging, your program must
+     have been compiled with debug symbols (at least -g with GNU gcc).
+     also, remember that optimized code might be difficult to debug
+     as the compiler moved your code around when optimizing.
+
+Tip: to know more about any command, simply ask for help:
+
+  (gdb) help layout
+  Change the layout of windows.
+  Usage: layout prev | next | <layout_name> 
+  Layout names are:
+   src   : Displays source and command windows.
+   asm   : Displays disassembly and command windows.
+   split : Displays source, disassembly and command windows.
+   regs  : Displays register window. If existing layout
+           is source/command or assembly/command, the 
+           register window is displayed. If the
+           source/assembly/command (split) is displayed, 
+           the register window is displayed with 
+           the window that has current logical focus.
+
+=======================================================================
+GDB interface
+=======================================================================
+
+GDB is really a command line tool, powerful but sometimes cumbersome.
+One of its weaknesses is about showing the source, that is, where
+the execution is at.
+
+  (gdb) list
+
+You can list also any specific range of lines:
+
+  (gdb) l 120,133   
+
+That is a possibility, although not super user-friendly. 
+Look at more ways to list the source with:
+
+  (gdb) help list
+
+One of these ways is to use different layouts.
+Before you do so, make sure you resize your terminal window is be tall 
+and not too wide, typically like a half screen. Then start gdb and choose
+the source layout:
+
+  (gdb) layout source
+
+You will then have your terminal window split in two parts.
+The top will show you the source, when stopped at a breakpoint,
+the bottom half will be your regular gdb window.
+
+You can cycle through the different layout with the layout command:
+
+    (gdb) layout next
+
+=======================================================================
+Launching and stopping
+=======================================================================
+
+To launch GDB, there are several ways.
+The most obvious way is to have gdb start your program from a shell:
+
+   $ gdb your-program
+   (gdb) run <with you arguments here>
+
+Ctrl-C stops the execution.
+To know where you are:
+
+   (gdb) where
+
+The output gives you the current call stack, on the current thread.
+To know which thread you are on:
+
+   (gdb) thread
+   [Current thread is 1 (Thread 1)]
+   (gdb) info threads
+     Id   Target Id         Frame 
+   * 1    Thread 1 (CPU#0 [running]) diskboot (_eax=1785688930, _ebx=129984) at loader.c:122
+
+You can kill your program at any time and then restart it.
+You can even "make" it without leaving gdb.
+
+    (gdb) kill
+    Kill the program being debugged? (y or n) y
+    (gdb) make
+    (gdb) run
+
+Tip: if you kill your program, edit it, re-make it outside of gdb,
+     gdb is smart enough to know and reload your program before running it.
+
+=======================================================================
+Breakpoints
+=======================================================================
+
+But even better, you can set breakpoints:
+
+   (gdb) br *0x7c00          // giving a memory address
+   (gdb) br boot.S:136       // a assembly-source file and a line number
+   (gdb) br loader.c:122     // a C-source file and a line number
+   (gdb) br diskboot         // a function name
+
+To know what breakpoints you already have:
+   (gdb) info br
+   Num     Type           Disp Enb Address    What
+   1       breakpoint     keep y   0x00007c00 boot.S:53
+     	   breakpoint already hit 1 time
+   2       breakpoint     keep y   0x00007c56 boot.S:136
+	   breakpoint already hit 1 time
+   3       breakpoint     keep y   0x00007db5 in diskboot at loader.c:122
+   	   breakpoint already hit 1 time
+
+To remove a breakpoint, use the delete command, with a breakpoint number:
+
+   (gdb) d 1
+
+=======================================================================
+Watches
+=======================================================================
+
+You can also use watches... which is just incredibly powerful.
+
+   (gdb) help watch
+   Set a watchpoint for an expression.
+   Usage: watch [-l|-location] EXPRESSION
+   A watchpoint stops execution of your program whenever the value of
+   an expression changes.
+   If -l or -location is given, this evaluates EXPRESSION and watches
+   the memory to which it refers.
+   (gdb) 
+
+For example, you can use it to stop whenever a memory location is changed.
+Assuming you have a variable i, let's say a global variable.
+    
+   (gdb) p /x &i
+   $1 = 0x1001a0
+   (gdb) watch -l *0x1001a0
+   Hardware watchpoint 6: -location *0x1001a0
+   (gdb)
+
+=======================================================================
+Execution
+=======================================================================
+
+Now commands related to executing your program, when you are stopped
+at a breakpoint or following a Crtl-C.
+
+   (gdb) continue
+   (gdb) step
+   (gdb) next
+   (gdb) finish
+
+Tip: you can use them as single character commands: c,s,n,f
+
+Tip: note that once you have typed a command, hitting return will repeat it.
+
+Note:
+      You have stepi and nexti to single step through assembly instructions.
+      The next/step commands are for single-stepping C programs.
+
+As you can see, gdb works line by line, using regular commands.
+
+=======================================================================
+Printing / Displaying
+=======================================================================
+
+To print a variable:
+
+   (gdb) print your_variable
+   (gdb) p /x your_variable
+
+You can display also, in which case, gdb will print the variable 
+whenever it stops.
+
+   (gdb) display /x your_variable
+
+You can also examine memory directly with the following command: 
+
+   x/FMT ADDRESS.
+
+   ADDRESS is an expression for the memory address to examine.
+
+   FMT is a repeat count followed by a format letter and a size letter.
+   Format letters are the following:
+       o(octal), x(hex), d(decimal), u(unsigned decimal),
+       t(binary), f(float), a(address), i(instruction), c(char), s(string)
+       z(hex, zero padded on the left).
+   Size letters are the following:
+       b(byte), h(halfword), w(word), g(giant, 8 bytes).
+
+The specified number of objects of the specified size are printed
+according to the format.
+
+Examples:
+
+	(gdb) x/4xb 0x1000    // To print 4 bytes in hexadecimal at 0x1000
+	(gdb) x/4xw 0x1000    // To print 4 words (32bits) in hexadecimal at 0x1000
+	(gdb) x/2uw 0x1000    // To print 2 words (32bits) as unsigned decimal at 0x1000
+
+
+Note:
+      Defaults for format and size letters are those previously used.
+      Default count is 1.  Default address is following last thing printed
+      with this command or "print".
+
+=======================================================================
+Remote debugging
+=======================================================================
+
+This is especially useful in the embedded world, either when debugging
+with JTAG hardware debuggers or with Qemu.
+
+Qemu embeds a GDB stub so that gdb can attach to qemu... right up to
+the very instruction executed by your program. Just fantastic.
+
+    $> qemu-system-i386  <you options> -s -S
+
+In another terminal window:
+
+    $> gdb boot.elf
+    (gdb) br *0x7c00
+    (gdb) target remote:1234
+    0x0000fff0 in ?? ()
+    (gdb) cont
+    Continuing.
+    Breakpoint 1, start () at boot.S:53
+    53			cli				# Disable interrupts
+    (gdb) 
+
+=======================================================================
+Loading symbols
+=======================================================================
+
+To work, gdb needs to know the symbols of your program. 
+Gdb reads the symbols from your program file, not from the executing process.
+
+    $> gdb toto
+    Reading symbols from toto...done.
+
+Sometimes, it is necessary to load symbols. 
+It is the case in our step1, to switch from the boot.elf symbols
+to the kernel.elf symbols when the loader is done loading the kernel.elf
+and jumping to the entry point in the kernel.
+
+    (gdb) symbol kernel.elf
+    Load new symbol table from "kernel.elf"? (y or n) y
+    Reading symbols from kernel.elf...done.
+    (gdb) 
+
+=======================================================================
+Attaching to a running process
+=======================================================================
+
+You can also attach to a currently running program.
+See the attach command.
+
+  (gdb) help attach
+
+=======================================================================
+GDB and Eclipse
+=======================================================================
+
+Eclipse is great for navigating sources. It also provides a nice integrated
+experience for debugging. However, one of its weaknesses is the graphical
+interface only. With gdb, one really needs to have the gdb console available.
+Still, it is an interesting setup that will help you be more effective.
+
+Follow these steps to setup your Eclipse.
+
+You must have the CDT plugin installed in Eclipse for C/C++ support.
+
+Import your project, as a C/C++ projet, with existing makefile.
+When importing, it is **crucial** to choose the correct toolchain,
+on linux it is the Linux GCC toolchain, corresponding to the fact
+that we are compiling and debugging with GNU tools (gcc and gdb).
+
+You should have a project, and you should be able to view and navigate
+the sources.
+
+I would suggest to make clean and make outside of Eclipse, but you can 
+do it from Eclipse. Just make sure you make the target all, not any other
+target.
+
+Setting up debugging is the trickier part. You have to setup a debug
+configuration manually.
+
+1- build and select (color with one click) the kernel.elf, in the package
+   browser view (it is the "executable" we will want Eclipse to debug).
+2- Open the debug configurations
+3- Select the template for remote debugging C/C++ applications
+   and create one configuration
+4- Edit that configuration
+    4.1 select the main tab
+	- Keep stop in main, but replace by kmain (we do not have a main function).
+	- the C/C++ application should be either kernel.elf or ia32/kernel.elf,
+          depending if you imported your project as the bootloader/ia32 directory
+	  or the bootloader directory.
+        
+    4.2 Selecting the debugger tab
+	- Remove .gdbinit (it will interfere will the Eclipse control of gdb).
+	- Select the tab connection:
+		set type to TCP
+		set the hostname to localhost
+		set the port to 1234.
+	If you see something about a gdbserver there, on the debugging tab,
+	as opposed to something about TCP and a port,
+	most probably, you selected the wrong toolchain.
+ 
+Once you have the configuration setup, you can start qemu in debug mode (-s -S),
+either manually or with the make dbg. Qemu will start and pause waiting for a 
+connection on the port 1234, before executing any instruction of your program.
+
+Launch debug with your new configuration and Eclipse will connect to Qemu 
+and will show you the first instruction. To launch debugging the first time,
+go back to the debug configuration and click debug. After that, a quick launch
+is possible with the debug icon and its drop-down menu of the recent debug configurations
+that were used.
+
+=======================================================================
+GDB and DDD
+=======================================================================
+
+DDD is a graphical front end to GDB. It provides the GUI basic stuff
+you expect and it supports the GDB console, delivering the full debugging
+power of GDB to your finger tips.
+
+Install DDD through your distro, this should not be a problem.
+The manual is pretty self explanatory, so you should have no problem there.
+
+---------------------------------------------------------------------------
+WARNING: the following hacking may no longer be needed or working...
+         on Ubuntu 16.04, DDD is working just fine.
+	 So I would not mess with the following, unless you really want to.
+---------------------------------------------------------------------------
+
+However, sometimes, on some distro (like Ubuntu 14.04), DDD does not find 
+its fonts and defaults to ugly looking fonts, making using DDD really difficult.
+
+Here is the fix I used.
+
+1) Once you installed DDD, and launched it once, you should have ~/.ddd directory.
+   In that directory, you have the launch configuration in the "init" file.
+   Edit that file and search for the following section:
+
+	! Fonts.
+	Ddd*defaultFont: -bitstream-courier 10 pitch
+	Ddd*variableWidthFont: -bitstream-courier 10 pitch
+	Ddd*fixedWidthFont: -bitstream-courier 10 pitch
+	Ddd*dataFont: -bitstream-courier 10 pitch
+	Ddd*FontSize: 120
+
+   You can see that I use the Courier 10 pitch font, bitstream.
+   You may have this one or not.
+   To know which fonts you have, you can try this command:
+
+	$ fc-list | cut -f2 -d: | sort -u
+	 Abyssinica SIL
+	 Accanthis ADF Std
+	 Accanthis ADF Std No2
+	 Accanthis ADF Std No3
+	 Asana Math
+	 Bitstream Charter
+	 Cabin
+	 Century Schoolbook L
+	 Comfortaa
+	 Courier
+	 Courier 10 Pitch
+	 DejaVu Sans
+	 ...
+
+   You might prefer a paged output with:
+
+	$ fc-list | cut -f2 -d: | sort -u | less -r
+
+Another way is to use the xfontsel program from X11
+
+	$ xfontsel
+
+You will get a window that allows you to select available fonts,
+seeing which ones are installed and available.
+To do this, do the following:
+
+	- click first on -fndry and select from the drop-down menu 
+	  the option "bitstream". 
+	- click then on -fmly and select fromt the drop-down menu 
+	  the option "Courier 10 Pitch" or some other family.
+	- and so on if you need to be more specific about the fonts
+	  you wish to use 
+	
+
+
+
+
+
+
+
+
+
+

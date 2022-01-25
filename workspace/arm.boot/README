@@ -1,0 +1,141 @@
+
+This is the most simple project to boot a simple ARM-based board, the VersatilePB board.
+
+Different documents are available online, mostly from ARM website. You will need
+several technical reference manuals, like it is the case with most embedded systems.
+Unfortunately, these manuals are written from both hardware and software perspective,
+making them hard to read for software developers. Yet, they are full of information.
+				
+--------------------------------------------------------------------
+SETUP
+--------------------------------------------------------------------
+
+You must have a toolchain for ARM... because you will be cross-compiling and cross-debugging
+from your laptop/desktop (assuming you have an Intel/AMD hardware, either 32 or 64 bits).
+
+The toolchain gcc-arm-none-eabi has been used successfully. You can install it via your 
+normal software installer from your distribution
+
+	$ sudo apt-get install gcc-arm-none-eabi gdb-arm-none-eabi binutils-arm-none-eabi   
+
+Nota Bene: 
+           You must use all the tools from your toolchain, consistently.
+		   At the very least, this means the following:
+		    
+             - you must compile using the gcc compiler for the ARM processor
+             - you must link using the gcc linker for the ARM processor
+             - you must debug using the gdb debugger for the ARM processor
+
+           You most likely mistake will be to start a gdb for your own platform,
+           not the ARM platform emulated by Qemu.
+                      
+
+--------------------------------------------------------------------
+NAVIGATING THE CODE:
+--------------------------------------------------------------------
+
+The execution starts in startup.s, which contains the minimum setup in assembly language.
+The assembly entry point is the label _entry. 
+
+Then the execution goes up in C, in the file main.c, with the c_entry(void) function 
+as the C entry point. The C code is a simple program that polls UART0 and echoes every 
+character received on UART0.
+
+This code does not setup interrupts... so this is active polling... so expect to hear
+your fan ramp up pretty rapidly. ;-) 
+
+--------------------------------------------------------------------
+Makefile
+--------------------------------------------------------------------
+
+The makefile is a real vanilla makefile, nothing fancy or difficult.
+
+It is structured for cross-compilation, so you must give the path to your toolchain for ARM processor.
+
+The makefile can be used for everything:
+	- compiling and linking.
+	- launching the emulation on Qemu.
+	- debugging on Qemu.
+	
+--------------------------------------------------------------------
+Launching an emulation on Qemu
+--------------------------------------------------------------------
+
+The simplest is to use the given makefile:
+
+	$ make run
+	
+This will launch Qemu, emulating a VersatilePB board, loading your code (test.bin).
+Look at the makefile to see how test.bin is created using the objcopy tool from 
+the test.elf executable. 
+
+--------------------------------------------------------------------
+Debugging an emulation on Qemu
+
+	COMMAND LINE DEBUGGING
+--------------------------------------------------------------------
+
+You can easily debug also, using Qemu. You will need two terminals though,
+one to start Qemu first and the other to start the GNU gdb debugger.
+
+If you do not master gdb, please read the README-GDB! Otherwise, you can
+get debugging right away, using two terminals. In the first terminal:
+
+	$ make debug
+
+You will see the compilation and then the launch of Qemu that will
+wait for a debugger connection. Thus, in the second terminal, you will 
+need to start GDB and do the connection:
+
+	$ gcc-arm-none-eabi-gdb kernel.elf
+	(gdb) target remote :1234
+
+Why the port 1234? Look at the makefile, you will see it is the port
+given to Qemu when launched.
+	
+It is better to setup a breakpoint somewhere, before resuming the 
+execution, so why not at our very first instruction:
+	
+	(gdb) br _entry
+	(gdb) cont
+
+	
+--------------------------------------------------------------------
+Debugging an emulation on Qemu
+
+	ECLIPSE DEBUGGING
+--------------------------------------------------------------------
+
+You can also debug from Eclipse, if you have the CDT plugin installed,
+a set of plugins that are necessary for C development in Eclipse.
+
+We suggest that you start Qemu manually and configure Eclipse to connect,
+configuring it to do remote debugging through TCP on localhost:1234.
+
+Why the port 1234? Same reason as before, look at the makefile, you will 
+see it is the port given to Qemu when launched.
+
+--------------------------------------------------------------------
+To Go Deeper -- More Information
+--------------------------------------------------------------------
+
+You will need the technical reference manual of the processor of your board:
+
+	- DDI0222	ARM9EJ-S
+				Revision: r1p2
+				Technical Reference Manual
+
+You will need the technical reference manual of your board, describing many features
+of the board design.
+				
+	- DUI0225D	Versatile Application Baseboard for ARM926EJ-S (HBI-0118)
+				
+	- DUI0224I 	RealView Platform Baseboard for ARM926EJ-S (HBI-0117)
+
+You will also need the technical reference manual of the different devices, available
+on your board. In this simple example, we only use the UART:
+	
+	- DDI0183  	PrimeCell UART (PL011) 
+			 	Revision: r1p4
+				Technical Reference Manual
+

@@ -1,0 +1,222 @@
+
+\documentclass[10]{article}
+\usepackage{graphicx}
+\begin{document}
+\title{Bare-Metal Development \\
+M2M Lectures\\
+Grenoble University}
+\author{Your Names Here}
+\date{\today}
+\maketitle
+
+\section{Preface by Pr. Olivier Gruber}
+
+This document is your work log for the first step in the 
+M2M course, master-level, at the University of Grenoble, France.
+You will have such a document for each step of our course
+together.
+
+This document has two parts. One part is about diverse
+sections, each with a bunch of questions 
+that you have to answers. The other part is really 
+a laboratory log, keeping track of what you do, 
+as you do it.
+
+The questions provide a guideline for your learning. 
+They are not about getting a good grade if you answer them
+correctly, they are about giving your pointers on what to 
+learn about.
+
+The goal of the questions is therefore not to be answered 
+in three lines of text and be forgotten about. The questions
+must be researched and thoroughly understood. Ask questions
+around you if things are unclear, to your fellow students
+and to me, your professor. 
+
+Writing down the answers to the questions is a tool for helping
+your learn and remember. Also, it keeps track of what you know,
+the URLs you visited, the open questions that you are trouble with,
+etc. The tools you used. It is intended to be a living document,
+written as you go.
+
+Ultimately, the goal of the document is to be kept for 
+your personal records. If ever you will work on embedded
+systems, trust me, you will be glad to have a written 
+trace about all this.
+
+{\bf REMEMBER:} plaggia is a crime that can get you evicted
+forever from french universities... The solution is simple,
+write using your own words or quote, giving the source of
+the quoted text. Also, remember that you do not learn through
+cut\&paste. You also do not learn much by watching somebody else
+doing.
+
+\section{QEMU}
+
+What is QEMU?
+Why is it necessary here?
+
+Read the README-QEMU-ARM.
+
+Try it... with "make run"
+
+\section{GNU Debugger}
+
+Here, try single-stepping the code via the GNU debugger (GDB).
+
+Read the README-GDB.
+
+Try it, in one shell, launch QEMU in debug mode
+and in another shell launch gdb.
+
+\section{Makefile}
+
+You need to read and fully understand the provided makefile.
+Please find a few questions below highlighting important points
+of that makefile. These questions are there only to guide your
+reading of the makefile. Make sure they are addressed in your
+overall writing about the makefile and the corresponding challenge
+of building bare-metal software.
+
+\begin{enumerate}
+\item 
+  What is the TOOLCHAIN?
+\item
+  What are VersatilePB and VersatileAB?
+\item
+  What is a linker script? Look at the linker option "-T"
+\item
+  Read and understand the linker script that we use
+\item
+  Why do we translate the "kernel.elf" into a "kernel.bin" via "objcopy"  
+\item
+  What ensures that we can debug?
+\item
+  What is the meaning of the "-nostdlib" option? Why is it necessary?
+\item
+  Try MEMORY=32K, it fails, why? Look at the linker script.
+\item
+  Could you use printf in the code? Why?
+\end{enumerate}
+
+\subsection{Linker Script}
+
+Detail here your understanding of the linker script that we use.
+
+Why do we translate the "kernel.elf" into a "kernel.bin" via "objcopy"
+
+Why do we link our code to run at the 0x10000? 
+
+Why do we make sure the code for the object file "startup.o" is first?
+
+\subsection{ELF Format}
+
+What is the ELF format?
+
+Why is it used as an object file format and an executable file format.
+
+How does the ELF executable contain debug information? Which option must
+be given to the compiler and linker? Why to both?
+
+Confirm what ELF object files and the final ELF executable are with the shell command "file".
+
+Look at the ELF object files and the final ELF executable with the tool: arm-none-eabi-objdump.
+
+\section{Startup Code}
+
+Read and understand the startup code in the file "startup.s".
+
+Explain here what it does.
+
+\section{Main Code}
+
+Read and understand the main code in the file "main.c".
+
+Explain here what it does. In particular, explains how the characters
+you type in the terminal window actually appear on the terminal window.
+
+With a regular shell, the shell echoes the character as you type them.
+It only sends the characters once you hit the return key, as a complete line.
+
+It is the behavior you notice here? 
+
+\begin{enumerate}
+\item
+  What is an UART and a serial line? 
+\item
+  What is the purpose of a serial line here?
+\item
+  What is the relationship between this serial line
+  and the Terminal window running a shell on your laptop?
+\item
+  What is the special testing of the value 13 as a special
+  character and why do we send back '\textbackslash r' and '\textbackslash n'?
+\item
+  Why can we say this program polls the serial line?
+  Although it works, why is it not a good idea?
+\item
+  How could using hardware interrupts be a better solution?
+\item
+  Could we say that the function uart\_send may block? why?
+\item
+  Could we say that the function uart\_receive is non-blocking? why?
+\item
+  Explain why uart\_send is blocking and uart\_receive is non-blocking.  
+\end{enumerate}
+
+\section{Test Code -- TODO}
+
+\subsection{Blocking Uart-Receive}
+
+Change the code so that the function uart\_receive is blocking.
+
+Why does it work in this particular test code?
+
+Why would it be an interesting change in this particular setting?
+
+\subsection{Adding Printing}
+
+We provided you with the code of a kernel-version of printf,
+the function called "kprintf" in the file "kprintf.c".
+
+Add it to the makefile so that it is compiled and linked in.
+
+Look at the function "kprintf" and "putchar" in the file
+"kprintf.c". Why is the function "putchar" calling the
+function "uart\_send"?
+
+Use the function kprintf to actually print the code of the
+characters you type and not the characters themselves.
+
+Hit the following special keys:
+
+\begin{itemize}
+\item left and right arrow.
+\item backspace and delete key.
+\end{itemize}
+
+Explain what you see.
+      
+\subsection{Line editing}
+
+The idea is now to allow the editing of the current line:
+
+\begin{itemize}
+\item Using the left and right arrows
+\item Using the "backspace" and "delete" keys 
+\end{itemize}
+
+First, experiment using the left/right arrows...
+and the backspace/delete keys... 
+
+\begin{itemize}
+\item Explain what you see
+\item Explain what is happening?
+\end{itemize}
+
+Now that you understand, write the code to allow for line editing.
+
+\section{Laboratory Log}
+
+\end{document}
+

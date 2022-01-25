@@ -1,0 +1,8 @@
+09:59:06 **** Incremental Build of configuration Default for project arm.boot ****
+make all 
+arm-none-eabi-gcc -c -mcpu=arm926ej-s -g -fno-builtin  test.c -o test.o
+arm-none-eabi-ld -T test.ld  test.o startup.o kprintf.o -o test.elf
+arm-none-eabi-objcopy -O binary test.elf test.bin
+
+09:59:07 Build Finished. 0 errors, 0 warnings. (took 121ms)
+

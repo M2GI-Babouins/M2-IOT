@@ -1,0 +1,347 @@
+
+This is a readme about QEMU, a type-II hypervisor that works great on Linux.
+As an hypervisor, QEMU is designed to emulate a bare machine, that is, create
+the illusion of a real physical machine, but in software. Qemu can emulate
+many target machines, with different processors and different devices.
+You can have a list of machines as follows:
+
+	$ qemu-system-arm -machine help
+	...
+	realview-eb          ARM RealView Emulation Baseboard (ARM926EJ-S)
+	vexpress-a9          ARM Versatile Express for Cortex-A9
+	...
+	
+A machine is essentially about a preset hardware configuration.
+Indeed, Qemu is about simulating a computer, so the configuration of Qemu is 
+mostly about what hardware is simulated:
+
+       - processor type and number of cores
+       - amount of memory
+       - disks, either ide or scsi disks for example
+       - cdrom
+       - serial lines
+       - display, if any
+       - buses, like ISA or PCI bus
+       - etc.
+
+By choosing qemu-system-i386, you are opting for a i386-based computer.
+By choosing qemu-system-arm, you are opting for an ARM-based computer.
+For this simple project, the software has been written 
+for the ARM RealView Emulation Baseboard (ARM926EJ-S).
+
+You can let the original choice for the CPU or you can choose a different
+ARM processor. To know your options, you can issue the following command:
+
+	$ qemu-system-arm -machine versatilepb -cpu help
+	Available CPUs:
+  	arm1026
+  	arm1136
+  	arm1136-r2
+  	arm1176
+	arm11mpcore
+  	arm926
+  	arm946
+	cortex-a15
+  	cortex-a8
+  	cortex-a9
+  	cortex-m3
+	...
+	
+We will keep the default CPU for the VersatilePB board, 
+so there is no need to specify a specific CPU. 
+
+----------------------------------------------------
+Specifying the amount of memory on the virtual board
+----------------------------------------------------
+Default is 128M.
+ 
+   $ qemu-system-arm -m 64M
+
+   $ qemu-system-arm -machine versatilepb -m 1M
+     
+----------------------------------------------------
+Keyboard Setup
+----------------------------------------------------
+
+You can choose a keyboard layout.
+
+Default is -k en-us, but for french keyboard, you may use -k fr
+
+   $ qemu-system-arm -k en-us
+   $ qemu-system-arm -k fr
+
+--------------------------------------------------------------------
+QEMU Monitor Console
+--------------------------------------------------------------------
+Qemu provides you with an administrative console, called the monitor
+console. A typical way to have it is to configure it on the stdio serial
+line, which you are likely to have in all configurations.
+
+	$ qemu-system-arm -serial mon:stdio
+
+This is a very standard configuration, with one serial line and 
+one IDE disk. Notice that "-serial mon:stdio" as opposed to 
+the regular "-serial stdio". 
+
+From the terminal window, once Qemu is running, you can access the
+monitor console by typing "C-a c", getting the (qemu) prompt.
+
+   (qemu) help
+
+will provide you with a detailed help of the Qemu console commands.
+
+To have a lot of information on the hardware configuration,
+ultimately chosen by Qemu, you can use the Qemu monitor console
+(see above to know how to activate the monitor on stdio serial
+line) and you can ask Qemu to dump the hardware configuration:
+
+(qemu) info qtree
+bus: main-system-bus
+  type System
+  dev: cfi.pflash01, id ""
+    drive = ""
+    num-blocks = 256 (0x100)
+    sector-length = 262144 (0x40000)
+    width = 4 (0x4)
+    device-width = 0 (0x0)
+    max-device-width = 0 (0x0)
+    big-endian = false
+    secure = false
+    id0 = 137 (0x89)
+    id1 = 24 (0x18)
+    id2 = 0 (0x0)
+    id3 = 0 (0x0)
+    name = "versatile.flash"
+    old-multiple-chip-handling = false
+    mmio 0000000034000000/0000000004000000
+  dev: pl041, id ""
+    gpio-out "sysbus-irq" 1
+    nc_fifo_depth = 512 (0x200)
+    mmio 0000000010004000/0000000000001000
+  dev: versatile_i2c, id ""
+    mmio 0000000010002000/0000000000001000
+    bus: i2c
+      type i2c-bus
+      dev: ds1338, id ""
+        address = 104 (0x68)
+  dev: pl031, id ""
+    gpio-out "sysbus-irq" 1
+    mmio 00000000101e8000/0000000000001000
+  dev: pl181, id ""
+    gpio-out "" 2
+    gpio-out "sysbus-irq" 2
+    mmio 000000001000b000/0000000000001000
+  dev: pl181, id ""
+    gpio-out "" 2
+    gpio-out "sysbus-irq" 2
+    mmio 0000000010005000/0000000000001000
+  dev: pl110_versatile, id ""
+    gpio-in "" 1
+    gpio-out "sysbus-irq" 1
+    mmio 0000000010120000/0000000000001000
+  dev: pl061, id ""
+    gpio-in "" 8
+    gpio-out "" 8
+    gpio-out "sysbus-irq" 1
+    mmio 00000000101e7000/0000000000001000
+  dev: pl061, id ""
+    gpio-in "" 8
+    gpio-out "" 8
+    gpio-out "sysbus-irq" 1
+    mmio 00000000101e6000/0000000000001000
+  dev: pl061, id ""
+    gpio-in "" 8
+    gpio-out "" 8
+    gpio-out "sysbus-irq" 1
+    mmio 00000000101e5000/0000000000001000
+  dev: pl061, id ""
+    gpio-in "" 8
+    gpio-out "" 8
+    gpio-out "sysbus-irq" 1
+    mmio 00000000101e4000/0000000000001000
+  dev: sp804, id ""
+    gpio-out "sysbus-irq" 1
+    freq0 = 1000000 (0xf4240)
+    freq1 = 1000000 (0xf4240)
+    mmio 00000000101e3000/0000000000001000
+  dev: sp804, id ""
+    gpio-out "sysbus-irq" 1
+    freq0 = 1000000 (0xf4240)
+    freq1 = 1000000 (0xf4240)
+    mmio 00000000101e2000/0000000000001000
+  dev: pl080, id ""
+    gpio-out "sysbus-irq" 1
+    mmio 0000000010130000/0000000000001000
+  dev: pl011, id ""
+    gpio-out "sysbus-irq" 1
+    chardev = ""
+    mmio 0000000010009000/0000000000001000
+  dev: pl011, id ""
+    gpio-out "sysbus-irq" 1
+    chardev = ""
+    mmio 00000000101f3000/0000000000001000
+  dev: pl011, id ""
+    gpio-out "sysbus-irq" 1
+    chardev = ""
+    mmio 00000000101f2000/0000000000001000
+  dev: pl011, id ""
+    gpio-out "sysbus-irq" 1
+    chardev = "serial0"
+    mmio 00000000101f1000/0000000000001000
+  dev: smc91c111, id ""
+    gpio-out "sysbus-irq" 1
+    mac = "52:54:00:12:34:56"
+    vlan = 0
+    netdev = "hub0port0"
+    mmio 0000000010010000/0000000000000010
+  dev: versatile_pci, id ""
+    gpio-out "sysbus-irq" 4
+    broken-irq-mapping = 0 (0x0)
+    mmio 0000000010001000/0000000000001000
+    mmio 0000000041000000/0000000001000000
+    mmio 0000000042000000/0000000001000000
+    mmio 0000000043000000/0000000100000000
+    mmio 0000000044000000/000000000c000000
+    mmio 0000000050000000/0000000010000000
+    mmio 0000000060000000/0000000010000000
+    bus: pci
+      type PCI
+      dev: lsi53c895a, id ""
+        addr = 0c.0
+        romfile = ""
+        rombar = 1 (0x1)
+        multifunction = false
+        command_serr_enable = true
+        x-pcie-lnksta-dllla = true
+        x-pcie-extcap-init = true
+        class SCSI controller, addr 00:0c.0, pci id 1000:0012 (sub 0000:1000)
+        bar 0: i/o at 0xffffffffffffffff [0xfe]
+        bar 1: mem at 0xffffffffffffffff [0x3fe]
+        bar 2: mem at 0xffffffffffffffff [0x1ffe]
+        bus: scsi.0
+          type SCSI
+          dev: scsi-disk, id ""
+            drive = "scsi0-cd2"
+            logical_block_size = 512 (0x200)
+            physical_block_size = 512 (0x200)
+            min_io_size = 0 (0x0)
+            opt_io_size = 0 (0x0)
+            discard_granularity = 4096 (0x1000)
+            write-cache = "auto"
+            share-rw = false
+            rerror = "auto"
+            werror = "auto"
+            ver = "2.5+"
+            serial = ""
+            vendor = "QEMU"
+            product = "QEMU CD-ROM"
+            removable = true
+            dpofua = false
+            wwn = 0 (0x0)
+            port_wwn = 0 (0x0)
+            port_index = 0 (0x0)
+            max_unmap_size = 1073741824 (0x40000000)
+            max_io_size = 2147483647 (0x7fffffff)
+            scsi_version = 5 (0x5)
+            channel = 0 (0x0)
+            scsi-id = 2 (0x2)
+            lun = 0 (0x0)
+      dev: versatile_pci_host, id ""
+        addr = 0b.0
+        romfile = ""
+        rombar = 1 (0x1)
+        multifunction = false
+        command_serr_enable = true
+        x-pcie-lnksta-dllla = true
+        x-pcie-extcap-init = true
+        class Class 0b40, addr 00:0b.0, pci id 10ee:0300 (sub 1af4:1100)
+  dev: pl050_mouse, id ""
+    gpio-out "sysbus-irq" 1
+    mmio 0000000010007000/0000000000001000
+  dev: pl050_keyboard, id ""
+    gpio-out "sysbus-irq" 1
+    mmio 0000000010006000/0000000000001000
+  dev: versatilepb_sic, id ""
+    gpio-out "sysbus-irq" 32
+    gpio-in "" 32
+    mmio 0000000010003000/0000000000001000
+  dev: pl190, id ""
+    gpio-out "sysbus-irq" 2
+    gpio-in "" 32
+    mmio 0000000010140000/0000000000001000
+  dev: realview_sysctl, id ""
+    gpio-in "" 2
+    gpio-out "" 1
+    sys_id = 1090547716 (0x41007004)
+    proc_id = 33554432 (0x2000000)
+    len-db-voltage = 0 (0x0)
+    len-db-clock = 0 (0x0)
+    mmio 0000000010000000/0000000000001000
+(qemu) 
+
+Have deciphering that! ;-)  
+
+--------------------------------------------------------------------
+Debugging with QEMU:
+--------------------------------------------------------------------
+
+To have GDB debugging, you need to ask QEMU to provide a GDB server
+that the GDB can connect to:
+
+    $ qemu-system-arm -S -s
+
+or even better:
+ 
+    $ qemu-system-arm -gdb tcp::1234 -S
+
+The -S option forces qemu to stop upon starting allowing you to attach gdb. 
+The tcp::1234 indicates that you will attach on the port 1234.
+So in another shell:
+
+  $ arm-none-eabi-gdb
+  (gdb) file kernel.elf 
+  Reading symbols from kernel.elf...done.
+  (gdb) target remote localhost:1234
+  Remote debugging using :1234
+  0x00000000 in ?? ()
+  (gdb) si
+  0x00000004 in ?? ()
+  (gdb) 
+  0x00000008 in ?? ()
+  (gdb) 
+  0x0000000c in ?? ()
+  (gdb) 
+  _start () at startup.s:3
+  3	 ldr sp, =stack_top
+  (gdb) 
+  
+You can also skip the "reset assembly sequence", using a breakpoint:
+
+  $ arm-none-eabi-gdb
+  (gdb) file kernel.elf 
+  Reading symbols from kernel.elf...done.
+  (gdb) br _start
+  Breakpoint 1 at 0x10000: file startup.s, line 3.
+  (gdb) target remote localhost:1234
+  Remote debugging using :1234
+  0x00000000 in ?? ()
+  (gdb) continue
+
+  Breakpoint 1, _start () at startup.s:3
+  3	 ldr sp, =stack_top
+  (gdb) 
+
+You can step through the assembly code or you can also
+use a breakpoint in the first C function:
+
+  (gdb) br c_entry  
+  Breakpoint 2 at 0x10190: file test.c, line 99.
+  (gdb) continue
+  Continuing.
+
+  Breakpoint 2, c_entry () at test.c:99
+  99	  int i = 0;
+  (gdb) 
+  
+Voila! 
+Read the 
