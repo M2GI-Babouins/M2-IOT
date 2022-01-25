@@ -5,7 +5,7 @@
 \title{Bare-Metal Development \\
 M2M Lectures\\
 Grenoble University}
-\author{Your Names Here}
+\author{François-Xavier Gros, Jahna Neola}
 \date{\today}
 \maketitle
 
@@ -51,30 +51,40 @@ the quoted text. Also, remember that you do not learn through
 cut\&paste. You also do not learn much by watching somebody else
 doing.
 
+
 \section{QEMU}
 
-What is QEMU?
-Why is it necessary here?
+QEMU est un émulateur, il représente la puce/carte + le cable + le terminal dédié (configuré pour l'interaction avec le hardware spécifique).
 
 Read the README-QEMU-ARM in the project ``arm.boot'' (workspace/arm.boot)
 
-Try it... with "make run". Understand the options given to QEMU.
+Avec `make run`, QEMU est appelé avec les options suivantes
 
-Relate the kernel option and the makefile and the difference between the ELF file (kernel.elf) and the binary file (kernel.bin) produces by the makefile.
+\begin{itemize}
+  \item -M VersatileAB : type de machine à émuler
+  \item -m 1M : la quantité de mémoire du matériel
+  \item -nographic : sans interface graphique
+  \item -kernel kernel.bin : le binaire qu'execute 
+  \item -serial mon:stdio : sortie standard utilisée
+  \item -gdb tcp::1234 : configuration pour utiliser gdb
+  \item -S : "freeze CPU at startup" : exige de lancer explicitement l'execution avec s
+\end{itemize}
+
+Les deux derniers options sont spécifiques au mode debug car il s'agit de la configuration gdb et de permettre à l'utilisateur de lancer l'exécution.
+
+Différence entre fichier ELF et fichier BIN :
+
+Fichier ELF comprend le fichier BIN plus des métadonnées permettant de débugger le programme (variables de debuggage, des informations sur la mémoire, table des symboles...).
 
 \section{GNU Debugger}
 
-Here, try single-stepping the code via the GNU debugger (GDB).
-
-Read the README-GDB (workspace/arm.boot) and the GDB cheat sheet.
-
-Try it, in one shell, launch QEMU in debug mode (make debug)
-and in another shell launch gdb. Relate the options given to QEMU
-and the way you launch gdb and connect to QEMU.
+GNU s'exécute avec le .elf. A besoin d'être configuré pour se lancer sur le hardward, ici l'emulateur QEMU.
 
 How early are you in the boot sequence of the hardware when
 executing the first instruction? What software runs before
 the first instruction of our code (kernel.bin)?
+
+hardware se lance avec startup.s avec PC placé au stack_top (rien n'indique des commandes soient déjà écrites à cet instant ) puis le point d'entrée dans le programme C est entré (`c_entry' est alors considéré comme un main). Le fichier kernel n'est exécuté que lorsque la machine est completement démarée et bien configurée.
 
 \section{Makefile}
 
@@ -88,21 +98,28 @@ of building bare-metal software.
 \begin{enumerate}
 \item 
   What is the TOOLCHAIN?
+  Ensemble compatible de programmes selon leurs interfaces et leurs specifications, ensemble ils peuvent compiler, deassembler, linker et convertir des programmes.
 \item
   What is the meaning of "none" and "eabi" in the compiler
   name "arm-none-eabi-gcc"?
+  none est que c'est qu'on vise une execution "bare-metal" sans passer par un OS
+  eabi est la première couche entre le kernel Linux et la distribution 
 \item
   What are VersatilePB and VersatileAB?
+  Ce sont deux types de cartes polyvalentes. La premiere est PlatformBaseboard : bon pour developpement sur système embarqué avec PCI (slot pour carte graphique par ex). La seconde est Application Baseboard : bon pour les applications mobiles.
 \item
   What is a linker script? Look at the linker option "-T"
-\item
-  Read and understand the linker script that we use
+  Notre linker : arm-none-eabi-ld, à partir de fichier ELF (binaire) créé un nouveau fichier ELF regroupant l'execution totale du programme
+  - T FILE : spécifie un fichier qui sera le script pour linker 
+  ici on utilise kernel.ld qui gère la configuration de base de kernel.elf (le binaire de retour) dont la configuration nécessaire à startup, et les definitions des zones memoire
 \item
   Why do we translate the "kernel.elf" into a "kernel.bin" via "objcopy"  
+  objcopy autorise la modification du binaire durant sa copie, le flag -O binary est une méthode pour specifier le format de retour, vers un binaire brute tous les symboles et informations de reallocation sont enlevés.
 \item
   What compiler/linker options ensure that we can debug?
 \item
   What is the meaning of the "-nostdlib" option? Why is it necessary?
+  Indique que rien ne peut être recuperer dynamiquement, tout doit être dans le binaire.
 \item
   Try MEMORY=32K, it fails, why? Look at the linker script.
 \item
