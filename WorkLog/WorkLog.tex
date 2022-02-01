@@ -113,82 +113,96 @@ of building bare-metal software.
   - T FILE : spécifie un fichier qui sera le script pour linker 
   ici on utilise kernel.ld qui gère la configuration de base de kernel.elf (le binaire de retour) dont la configuration nécessaire à startup, et les definitions des zones memoire
 \item
-  Why do we translate the "kernel.elf" into a "kernel.bin" via "objcopy"  
+  Why do we translate the "kernel.elf" into a "kernel.bin" via "objcopy"?
   objcopy autorise la modification du binaire durant sa copie, le flag -O binary est une méthode pour specifier le format de retour, vers un binaire brute tous les symboles et informations de reallocation sont enlevés.
 \item
   What compiler/linker options ensure that we can debug?
+  2 : -gdb tcp::1234 -S : le premier pour lier gdb au programme de la carte emulée, le second pour stoper l'execution initiale et donner la main à l'utilisateur
 \item
   What is the meaning of the "-nostdlib" option? Why is it necessary?
   Indique que rien ne peut être recuperer dynamiquement, tout doit être dans le binaire.
 \item
   Try MEMORY=32K, it fails, why? Look at the linker script.
+  Erreur : pas de fails au build mais les uart_send_string et uart_receive ne fonctionnent pas. 0x10000 superieur a 32K donc methode d'entree non definie
 \item
   Could you use printf in the code? Why?
+  No, it is a part of libc that is not included
 \end{enumerate}
 
 \subsection{Linker Script}
 
 Detail here your understanding of the linker script that we use.
 
-Why do we translate the "kernel.elf" into a "kernel.bin" via "objcopy"
+Linker script :
 
-Why do we link our code to run at the 0x10000? 
-
-Why do we make sure the code for the object file "startup.o" is first?
+\begin{itemize}
+  \item definit le point d'entrée (ENTRY) ici startup.s
+  \item definit les sections de la memoire
+  \item comprend la stack, le bss (variables globales, mémoire mise à 0 par sureté), data
+  \item addresse 0x10000 car le kernel Qemu s'y enregistre par défaut (plus efficace qu'une reallocation dans notre cas)
+\end{itemize}
 
 \subsection{ELF Format}
-
-What is the ELF format?
-
-Look at the command "arm-none-eabi-objdump"
-
-Why is it used as an object file format and an executable file format.
 
 How does the ELF executable contain debug information? Which option must
 be given to the compiler and linker? Why to both?
 
-Confirm what ELF object files and the final ELF executable are with the shell command "file".
+Cette fonctionne donne des informations sur un ou plusieurs fichiers, ELF est un executable qui comprend ce que comprendrais un bin + des informations dans une table qui permettent notamment le debeuggage. 
 
-Look at the ELF object files and the final ELF executable with the tool: arm-none-eabi-objdump.
+kernel.elf comprend des section d'assembleur par fonction + des variables de debug (etat courant notament) en table de symboles 
+
+file renvoit
+ELF 32-bit LSB executable, ARM, EABIS v 1 (SYSV) statically linked, with debug_info, not stripped
 
 \section{Startup Code}
 
-Read and understand the startup code in the file "startup.s".
-
-Explain here what it does.
+Point d'entrée du programme, lien avec le code C, initialise les registres.
 
 \section{Main Code}
 
-Read and understand the main code in the file "main.c".
+3 méthodes : send/receive a char et send_string.
 
-Explain here what it does. In particular, explains how the characters
-you type in the terminal window actually appear on the terminal window.
+c_entry : la méthode main qui est executé à l'appel du fichier. 
 
-With a regular shell, the shell echoes the character as you type them.
-It only sends the characters once you hit the return key, as a complete line.
+Cette méthode
 
-It is the behavior you notice here? 
+\begin{itemize}
+  \item affiche les 2 premieres string
+  \item fait une boucle infinie
+  \item tant qu'on a pas reçu de caractere pendant un laps de temps, on envoie "zzz" si ECHO_ZZZ sinon rien
+  \item si le caratere existe on l'affiche dans la console (comportement particulier pour le retour chariot)
+\end{itemize}
+
+Chaque caractere apparait dès qu'il est tapé
+
 
 \begin{enumerate}
 \item
   What is an UART and a serial line? 
+  UART pin d'entrée sur la board, serial line = line serie connecteur fillaire entre la board et les peripheriques
 \item
   What is the purpose of a serial line here?
+  emulation de la ligne serie associée à la board, gère les interactions utilisateur (entrée - sortie), ici on l'a connectée a stdio (les standard) ce qui permet d'interagir avec le clavier et l'ecran
 \item
   What is the relationship between this serial line
   and the Terminal window running a shell on your laptop?
 \item
   What is the special testing of the value 13 as a special
   character and why do we send back '\textbackslash r' and '\textbackslash n'?
+  13 est le code ASCII du retour chariot (uniforme à tous les OS) c'est donc ce code qu'on teste plutôt qu'une valeur/char qui dépend de l'OS
 \item
   Why can we say this program polls the serial line?
   Although it works, why is it not a good idea?
+  Boucle avec le while sur le caractere d'entrée : sur-utilisation des ressources 
 \item
   How could using hardware interrupts be a better solution?
+  libère le processeur pour de vraies activités (pas attendre)
 \item
   Could we say that the function uart\_send may block? why?
+  Oui, si la queue UART TX est pleine.
 \item
   Could we say that the function uart\_receive is non-blocking? why?
+  Oui, la queue est en entrée, elle peut être vide ou pleine.
 \item
   Explain why uart\_send is blocking and uart\_receive is non-blocking.  
 \end{enumerate}
