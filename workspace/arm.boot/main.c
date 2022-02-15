@@ -1,6 +1,11 @@
 #include "main.h"
 #include "kprintf.c"
 
+unsigned char text [2000];
+unsigned int pos = 0;
+unsigned int maxpos = 0;
+
+
 /**
  * Receive a character from the given uart, this is a non-blocking call.
  * Returns 0 if there are no character available.
@@ -45,23 +50,37 @@ void uart_send_string(int uart, const unsigned char *s)
 
 void uart_left(int uart)
 {
+  if(pos==0)
+    return;
   uart_send(uart, '\b');
+  pos --;
 }
 
 void uart_right(int uart)
 {
-    uart_send(uart, '\f');
+    if(pos < maxpos)
+      uart_send(uart, text[pos++]);
 }
 
 void uart_back(int uart)
 {
+  if(pos==0)
+    return;
+
   uart_left(uart);
   uart_send(uart, ' ');
+  text[pos++] = ' ';
   uart_left(uart);
 }
 
 void uart_del(int uart)
 {
+  if(pos==maxpos)
+    return;
+  uart_send(uart, ' ');
+  text[pos++] = ' ';
+  uart_left(uart);
+
 }
 
 
@@ -97,6 +116,9 @@ void interpreter(unsigned char c)
   {
     uart_send(UART0, '\r');
     uart_send(UART0, '\n');
+    if(pos == maxpos)
+      maxpos ++;
+    text[pos++] = c;
     return;
   }
 
@@ -110,8 +132,11 @@ void interpreter(unsigned char c)
   if(c == 27){
     machine = 27;
   }else{
+    if(pos == maxpos)
+      maxpos ++;
+    text[pos++] = c;
     uart_send(UART0, c);
-    kprintf("%d", c);
+    //kprintf("%d", c);
   }
 
 
@@ -125,7 +150,7 @@ void interpreter(unsigned char c)
  * a low-power state and wake-up only to handle an interrupt from the UART.
  * But this would require setting up interrupts...
  */
-#define ECHO_ZZZ
+//#define ECHO_ZZZ
 
 /**
  * This is the C entry point, upcalled once the hardware has been setup properly
