@@ -1,9 +1,46 @@
 #include "main.h"
 #include "kprintf.c"
 
+
 unsigned char text [2000];
 unsigned int pos = 0;
 unsigned int maxpos = 0;
+
+
+
+void irq_setup(){
+  int* uart_addr = (int*)(UART0 + UART_IMSC);
+  *(uart_addr) = UART_IMSC_TXIM;
+  int* vic_addr = (int*)(VIC_BASE_ADDR + VICINTENABLE);
+  *(vic_addr) = (1<< UART0_VIC_IRQ_MASK);
+}
+
+
+#define MAX_CHARS 512
+volatile unsigned char buffer[MAX_CHARS];
+volatile int head = 0;
+volatile int tail = 0;
+
+void isr(){
+  unsigned char c; 
+  int have_next = uart_receive(UART0, &c);
+
+  if (!have_next){
+    //erreur
+    return;
+  }
+
+
+  while(have_next){
+    int next = (head + 1) %MAX_CHARS;
+    if(next == tail) return ;
+    buffer[head] = c;
+    head = next;
+      
+    have_next = uart_receive(UART0, &c);
+  }
+
+}
 
 
 /**
@@ -160,6 +197,14 @@ void c_entry()
 {
   int i = 0;
   int count = 0;
+  int eol = 0;
+
+  _irqs_setup();
+  _irqs_enable();
+
+  irq_setup();
+
+
   uart_send_string(UART0, "\nHello world!\n");
   uart_send_string(UART0, "\nQuit with \"C-a c\" and then type in \"quit\".\n");
   while (1)
@@ -175,11 +220,17 @@ void c_entry()
         count = 0;
       }
     }
+    interpreter(c);
 #else
-    if (0 == uart_receive(UART0, &c))
-      continue;
+      while(eol != head){
+        eol = (eol +1 )% MAX_CHARS;
+        interpreter(buffer[eol]);
+        eol = (eol+1) % MAX_CHARS;
+        tail = eol;
+      }
+      _wfi();
+    
 #endif
 
-    interpreter(c);
   }
 }

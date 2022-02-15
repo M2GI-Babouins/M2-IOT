@@ -55,6 +55,34 @@
 #define UART_RXFE (1<<4)
 #define UART_BUSY (1<<3)
 
+/*
+* UARTICR : Interrupt Clear Register
+* Write only, 11 lower bits
+* Write High bits clear register
+*/
+#define UART_ICR 0x44
+
+/*
+* UART_IMSC : Interrupt Mask Set/Clear
+*/
+#define UART_IMSC 0x038
+#define UART_IMSC_TXIM (1<<4)
+
+/*
+*  IRQ
+*/
+#define UART0_IRQ 12
+
+/*
+* VIC
+*/
+#define VIC_BASE_ADDR 0x10140000
+#define VICINTENABLE 0x010
+#define UART0_VIC_IRQ_MASK (1<<UART0_IRQ)
+
+
+void isr();
+
 /**
  * Receive a character from the given uart, this is a non-blocking call.
  * Returns 0 if there are no character available.
@@ -75,5 +103,10 @@ void uart_send(int uart, unsigned char s);
  */
 void uart_send_string(int uart, const unsigned char *s);
 
+
+extern void _irqs_setup(void);
+extern void _irqs_enable(void);
+extern void _irqs_disable(void);
+extern void _wfi(void);
 
 #endif /* MAIN_H_ */

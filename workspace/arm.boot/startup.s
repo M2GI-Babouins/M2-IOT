@@ -48,7 +48,9 @@ _entry:
  	/*
  	 * Now upcall the C entry function, c_entry(void)
  	 */
-    bl c_entry
+    //bl c_entry
+	ldr r3,=c_entry
+ 	mov pc,r3
 _halt:
 	b	_halt
 

@@ -7,6 +7,8 @@ ENTRY(_entry)
  */
 SECTIONS
 {
+  . = 0x0;
+  . : { exception.o(.text) }
   /*
    * Since we are loaded by Qemu, as a kernel, we are loaded at 0x10000.
    * For simplicity, we consider that we will be linked at the same address,
@@ -24,6 +26,7 @@ SECTIONS
    * that can be loaded by QEMU.
    */
  .startup . : { startup.o(.text) }
+ 
  /*
   * Now include the other sections of code.
   */
@@ -65,4 +68,11 @@ SECTIONS
  . = ALIGN(8);
  . = . + 0x1000; /* 4kB of stack memory */
  stack_top = .;
+/*
+* IRQ
+*/
+ . = ALIGN(8);
+ . = . + 0x1000; /* 4kB of IRQ stack memory */
+ irq_stack_top = .;
+
 }
