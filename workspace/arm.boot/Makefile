@@ -18,13 +18,15 @@ all: startup.o main.o
 	$(TOOLCHAIN)-objcopy -O binary kernel.elf kernel.bin
 
 clean: 
-	rm -f startup.o test.o kernel.elf
+	rm -f startup.o test.o kernel.elf 
 
 startup.o: startup.s
 	$(TOOLCHAIN)-as $(ASFLAGS) startup.s -o startup.o
 
 main.o: main.c
 	$(TOOLCHAIN)-gcc $(CFLAGS) main.c -o main.o
+
+
 
 run: all
 	$(QEMU) -M $(MACHINE) -m $(MEMORY) -nographic -kernel kernel.bin -serial mon:stdio

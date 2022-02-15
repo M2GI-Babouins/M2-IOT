@@ -8,7 +8,7 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
-#include <stddef.h>
+//#include <stddef.h>
 
 /**
  * Look at the document describing the Versatile Application Board:
