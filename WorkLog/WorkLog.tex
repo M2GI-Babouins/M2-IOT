@@ -254,8 +254,6 @@ Sequence pour machine à état
 \item Using the "backspace" (8) and "delete" keys  (27 91  51 126)
 \end{itemize}
 
-8 backspace, 7[91351~126 127 supp/del (27 91  51 126), to left 7[91D68 to right 9[91C67
-
 First, experiment using the left/right arrows...
 and the backspace/delete keys... 
 
@@ -266,7 +264,16 @@ and the backspace/delete keys...
 
 Now that you understand, write the code to allow for line editing.
 
-\section{Laboratory Log}
+Line editing : machine à état pour disjonction de cas et historique text pour la possibilité de se déplacer (et réécrire pour la flèche droite).
+
+\subsection{Interrups}
+
+Plusieurs étapes :
+lier exception.s et modifier le makefile
+modifier kernel.ld
+
+ajout de la methode isr dans main 
+
 
 \end{document}
 
