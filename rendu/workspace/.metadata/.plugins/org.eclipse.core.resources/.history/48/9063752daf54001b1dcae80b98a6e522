@@ -1,0 +1,37 @@
+
+QEMU=qemu-system-arm
+
+TOOLCHAIN=arm-none-eabi
+
+ASFLAGS= -mcpu=arm926ej-s -g 
+CFLAGS= -c -mcpu=arm926ej-s -g 
+LDFLAGS= -T test.ld 
+
+MACHINE=versatilepb
+MACHINE=versatileab
+
+MEMORY=1M
+
+# Notice that we link with our own linker script: test.ld
+all: startup.o test.o
+	$(TOOLCHAIN)-ld $(LDFLAGS) test.o startup.o -o test.elf
+	$(TOOLCHAIN)-objcopy -O binary test.elf test.bin
+
+clean: 
+	rm -f startup.o test.o test.elf
+
+startup.o: startup.s
+	$(TOOLCHAIN)-as $(ASFLAGS) startup.s -o startup.o
+
+test.o: test.c
+	$(TOOLCHAIN)-gcc $(CFLAGS) test.c -o test.o
+
+run: all
+	$(QEMU) -M $(MACHINE) -m $(MEMORY) -nographic -kernel test.bin -serial mon:stdio
+
+debug: all
+	$(QEMU) -M $(MACHINE) -m $(MEMORY) -nographic -kernel test.bin -serial mon:stdio -gdb tcp::1234 -S
+
+kill:
+	pkill qemu-system-arm
+
