@@ -203,8 +203,7 @@ Chaque caractere apparait dès qu'il est tapé
 \item
   Could we say that the function uart\_receive is non-blocking? why?
   Oui, la queue est en entrée, elle peut être vide ou pleine.
-\item
-  Explain why uart\_send is blocking and uart\_receive is non-blocking.  
+
 \end{enumerate}
 
 \section{Test Code -- TODO}
@@ -212,6 +211,8 @@ Chaque caractere apparait dès qu'il est tapé
 \subsection{Blocking Uart-Receive}
 
 Change the code so that the function uart\_receive is blocking.
+
+Changer le 'if' en 'while', fonctionne car le processeur n'a rien d'autre à exécuter : si c'était le cas, l'appel bloquant (attente active d'un caractère) empêcherait d'utiliser les autres fonctions. 
 
 Why does it work in this particular test code?
 
@@ -222,12 +223,15 @@ Why would it be an interesting change in this particular setting?
 We provided you with the code of a kernel-version of printf,
 the function called "kprintf" in the file "kprintf.c".
 
+Ajout équivalent à main.c + commente la ligne 11 de main.h
+
 Add it to the makefile so that it is compiled and linked in.
 
 Look at the function "kprintf" and "putchar" in the file
 "kprintf.c". Why is the function "putchar" calling the
 function "uart\_send"?
 
+'send' put a character in the queue (if it is possible) 
 Use the function kprintf to actually print the code of the
 characters you type and not the characters themselves.
 
@@ -244,9 +248,10 @@ Explain what you see.
 
 The idea is now to allow the editing of the current line:
 
+Sequence pour machine à état 
 \begin{itemize}
-\item Using the left and right arrows
-\item Using the "backspace" and "delete" keys 
+\item Using the left sequence (27 - 91 - 68 ) and sequence right arrows (27 - 91 - 67)
+\item Using the "backspace" (8) and "delete" keys  (27 91  51 126)
 \end{itemize}
 
 First, experiment using the left/right arrows...
@@ -259,7 +264,16 @@ and the backspace/delete keys...
 
 Now that you understand, write the code to allow for line editing.
 
-\section{Laboratory Log}
+Line editing : machine à état pour disjonction de cas et historique text pour la possibilité de se déplacer (et réécrire pour la flèche droite).
+
+\subsection{Interrups}
+
+Plusieurs étapes :
+lier exception.s et modifier le makefile
+modifier kernel.ld
+
+ajout de la methode isr dans main 
+
 
 \end{document}
 
