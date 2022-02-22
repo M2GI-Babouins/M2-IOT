@@ -1,0 +1,35 @@
+
+\documentclass[10]{article}
+\usepackage{graphicx}
+\begin{document}
+\title{Bare-Metal Development \\
+M2M Lectures\\
+Grenoble University}
+\author{François-Xavier Gros, Jahna Neola}
+\date{\today}
+\maketitle
+
+\section{Travail Réalisé}
+
+L'implémentation des interruptions a été réalisée et fonctionne.
+Un bug se produit sur l'UART en entrée, après quelques caractère, des caractères en trop sont lus.
+
+Le buffer circulaire et l'affichage fonctionnent bien.
+
+Une machine à état à été implémentée, permettant le fonctionnement correct de :
+\begin{itemize}
+  \item flèche gauche
+  \item flèche droite
+  \item retour arrière 
+  \item supprimer
+\end{itemize}
+
+\section{Architecture du code}
+\begin{itemize}
+  \item "main" contient les interractions avec l'UART, en entrée/sortie
+  \item "isr" contient le handler d'interruption et le buffer circulaire
+\end{itemize}
+Le makefile permet de correctement compiler et lancer le programme.
+
+\end{document}
+
